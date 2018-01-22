@@ -41,7 +41,11 @@ public class ClassAnalysises {
 		Collections.addAll(result,cl.map(t -> t.getDeclaredMethods()).orElse(new Method[] {}));
 		return result;
 	}
-	
+	/**
+	 * 生产Member列表对应的字符串列表
+	 * @param list Member列表
+	 * @return 对应字符串列表
+	 */
 	public static List<String> changeMemberToString(Collection<? extends Member> list){
 		return list.stream().map(m -> removePrex(m.toString())).collect(Collectors.toList());
 	}
@@ -50,6 +54,11 @@ public class ClassAnalysises {
 		return list.stream().map(m -> removePrex(m.toString())).collect(Collectors.toCollection(collectionFactory));
 	}
 	
+	/**
+	 * 移除方法字符串的方法名所在类名
+	 * @param str 方法字符串
+	 * @return
+	 */
 	public static String removePrex(String str) {
 		Matcher m = Pattern.compile("(\\w+\\.)+(\\w+\\()").matcher(str);
 		StringBuffer sb = new StringBuffer();

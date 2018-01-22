@@ -20,9 +20,11 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -116,7 +118,11 @@ public class ClassAnalysis<T> {
 	 * @return 过滤后的方法集合
 	 */
 	private Set<Method> getMethodByModifier(Map<String, List<Method>> map, String modifier) {
-		Set<Method> set = map.entrySet().stream().filter(entry -> entry.getKey().indexOf(modifier) > -1)
+		return getMethodByModifier(map, entry -> entry.getKey().indexOf(modifier) > -1);
+	}
+	
+	private Set<Method> getMethodByModifier(Map<String, List<Method>> map, Predicate<Entry<String, List<Method>>> predicate){
+		Set<Method> set = map.entrySet().stream().filter(predicate)
 				.map(entry -> entry.getValue()).flatMap(list -> list.stream()).collect(Collectors.toSet());
 		return set;
 	}
@@ -278,7 +284,18 @@ public class ClassAnalysis<T> {
 		map.put("Constructor", getConstructors());
 		map.put("private", changeMemberToString(getPrivateMethods()));
 		map.put("protected", changeMemberToString(getProtectedMethods()));
+		Predicate<Entry<String, List<Method>>> predicate = excludeModifier("private");
+		Set<Method> defaultMethod = this.getMethodByModifier(methodMap, predicate.and(excludeModifier("public")).and(excludeModifier("protected")));
+		map.put("default", changeMemberToString(defaultMethod));
 		return map;
+	}
+	/**
+	 * 创建一个Map键值不包含某字符串的Predicate谓词
+	 * @param modifier 不包含的字符串
+	 * @return 对应谓词
+	 */
+	private Predicate<Entry<String, List<Method>>> excludeModifier(String modifier){
+		return entry->entry.getKey().indexOf(modifier) == -1;
 	}
 
 	public Map<String, Set<String>> getAllPubilcMethodMap() {
